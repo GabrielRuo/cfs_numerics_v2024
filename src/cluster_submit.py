@@ -95,7 +95,6 @@ def submit_all_jobs(args: Sequence[Dict[Text, Any]], config) -> None:
     base.append(f"#SBATCH --exclude=icb-gpusrv0[1-2]")  # keep for interactive
   else:
     # base.append(f"#SBATCH -p cpu_p")
-    base.append(f"#SBATCH -n cpu_p") #for Tetralith
   print(f"Run array of {FLAGS.n_runs} tasks for each setting...")
   base.append(f"#SBATCH --array=0-{FLAGS.n_runs - 1}")
 

@@ -1,4 +1,13 @@
-# Numerical Analysis of The Causal Action Principle in Low Dimensions
+# Changes in v2024
+
+## New Requirements and Conda Environment setup
+
+Currently, work is underway which should smoothly set up a consistent Conda environment. This uses the shell script "setup_env.sh".
+
+* Before running the numerics, once run "setup_env.sh", this creates a Conda environment with the name cfs_v2024_env.
+* The shell script "run_test_job.sh" then calls a quick test run of the old code.
+
+# (Old version of README below) Numerical Analysis of The Causal Action Principle in Low Dimensions
 
 This is code accompanying the paper [Numerical Analysis of The Causal Action Principle in Low Dimensions](https://arxiv.org/abs/2201.06382).
 

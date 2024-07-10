@@ -2,6 +2,28 @@
 import analytical_results
 
 configurations = {
+  "gabs_test": {
+    "sweep": {
+      "m": [4, 8],
+      "f": [2, 4]
+    },
+    "fixed": {
+      "n": 1,
+      "jax_enable_x64": True,
+      "checkpoint_freq": 1000,
+      "sigma_weights": 0.01,
+      "sigma_spectrum": 0.01,
+      "lbfgs_maxiter": 10000,
+      "lbfgs_maxcor": 70,
+      "lbfgs_gtol": 1e-7,
+      "lbfgs_ftol": 1e-9,
+      "bfgs_maxiter": 5000,
+      "bfgs_gtol": 1e-7,
+      "max_m_bfgs": 1000,
+      "seed": 543,
+    },
+    "adaptive": {}
+  },
   "n1_large_f": {
     "sweep": {
       "m": [6, 8, 10, 12, 16, 24, 32, 64, 96, 128],

@@ -46,9 +46,11 @@ executable = "python" # we are trying to just run python from the environment
 run_file = FLAGS.runpath
 
 num_gpus = 0
-num_cpus = 8
-mem_mb = 64000
-max_runtime = "02-23:59:00"
+num_cpus = 2
+mem_mb = 12000
+# mem_mb = 64000
+# max_runtime = "02-23:59:00"
+max_runtime = "00-00:59:00"
 
 
 def get_output_name(value_dict: Dict[Text, Any]) -> Text:

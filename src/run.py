@@ -9,7 +9,8 @@ from absl import app
 from absl import flags
 from absl import logging
 from jax import random
-from jax.config import config
+# from jax.config import config
+from jax import config
 
 import utils
 

@@ -303,11 +303,13 @@ def boundedness(params: Params) -> float:
   make_bnd = vmap(_boundedness, (None, 0, 0, None))
   # Only looking at upper triangle (without diagonal)
   rows, cols = jnp.triu_indices(m, k=1)
-  bnd_ij, _ = make_bnd(xs, rows, cols, two_n)
+  # bnd_ij, _ = make_bnd(xs, rows, cols, two_n) #old version
+  bnd_ij = make_bnd(xs, rows, cols, two_n)
   bnd = 2 * jnp.sum(weights[rows] * weights[cols] * bnd_ij)
   # Add diagonal
   diag = jnp.arange(m)
-  bnd_ij, _ = make_bnd(xs, diag, diag, two_n)
+  # bnd_ij, _ = make_bnd(xs, diag, diag, two_n) # old version
+  bnd_ij = make_bnd(xs, diag, diag, two_n)
   bnd += jnp.sum(weights ** 2 * bnd_ij)
   return bnd
 

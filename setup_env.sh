@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Load Anaconda module
-module load Anaconda
+module load Anaconda/2023.09-0-hpc1
 
 # Check if the conda environment exists
 if conda info --envs | grep -q '^cfs_v2024_env\s'; then

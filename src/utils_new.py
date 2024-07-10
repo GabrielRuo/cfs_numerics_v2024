@@ -380,8 +380,8 @@ def boundedness(params: Params) -> float:
   weights = softmax(weights)
   spectra = make_spectra(pos_spectrum, neg_spectrum)
   m, n = pos_spectrum.shape
+  f = ((alphas.shape[1])//n+1+2*n)//2
 
-  make_eigenvectors = vmap(make_single_eigenvectors, in_axes=(0, 0, None,None))
   eigenvectors = make_eigenvectors(alphas, betas, f, n)
 
   make_bnd = vmap(boundedness_summand, (None, None, 0, 0))

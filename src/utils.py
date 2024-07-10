@@ -6,7 +6,7 @@ import numpy as np
 from absl import logging
 from jax import random, vmap, jit, grad, numpy as jnp
 from jax.nn import softmax, relu
-from jax.ops import index_update, index
+# from jax.ops import index_update, index
 from jax.scipy.linalg import expm
 from scipy.optimize import minimize
 
@@ -145,10 +145,14 @@ def make_hamiltonian(block_ul: jnp.ndarray,
   block_ul *= (1 - jnp.eye(two_n)[jnp.newaxis, ...])
   # put pieces together
   hamiltonian = jnp.zeros((m, f, f), dtype=jnp.complex64)
-  hamiltonian = index_update(hamiltonian, index[:, :two_n, :two_n], block_ul)
-  hamiltonian = index_update(hamiltonian, index[:, :two_n, two_n:], block_ur)
+  hamiltonian = hamiltonian.at[:, :two_n, :two_n].set(block_ul)
+  hamiltonian = hamiltonian.at[:, :two_n, two_n:].set(block_ur)
   block_ur = jnp.swapaxes(jnp.conj(block_ur), 1, 2)
-  hamiltonian = index_update(hamiltonian, index[:, two_n:, :two_n], block_ur)
+  hamiltonian = hamiltonian.at[:, two_n:, :two_n].set(block_ur)
+  # hamiltonian = index_update(hamiltonian, index[:, :two_n, :two_n], block_ul)
+  # hamiltonian = index_update(hamiltonian, index[:, :two_n, two_n:], block_ur)
+  # block_ur = jnp.swapaxes(jnp.conj(block_ur), 1, 2)
+  # hamiltonian = index_update(hamiltonian, index[:, two_n:, :two_n], block_ur)
   return hamiltonian
 
 

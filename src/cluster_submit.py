@@ -209,5 +209,10 @@ def main(_):
   print(f"DONE")
 
 
-if __name__ == "__main__":
-  app.run(main)
+# if __name__ == "__main__":
+#   app.run(main)
+if __name__ == '__main__':
+    try:
+        app.run(main)
+    except SystemExit:
+        pass

@@ -27,4 +27,7 @@ fi
 script_dir="$(dirname "$0")"
 
 # Launching jobs for all experiments
-python "${script_dir}/src/cluster_submit.py" --experiment_name=n1_testing --config=gabs_test --n_runs 1 --runpath="${script_dir}/src/run.py"
+# python "${script_dir}/src/cluster_submit.py" --experiment_name=n1_testing --config=gabs_test --n_runs 1 --runpath="${script_dir}/src/run.py"
+python "${script_dir}/src/cluster_submit.py" --experiment_name=n1_testing --config=gabs_test --n_runs 1 --runpath=/home/x_rojon/cfs_numerics_v2024/src/run.py
+
+

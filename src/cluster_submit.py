@@ -19,8 +19,9 @@ flags.DEFINE_string("config", None,
                     "If `None` use config specified here in `main`.")
 flags.DEFINE_string("result_dir", "/home/results/",
                     "Base directory for all results.")
-flags.DEFINE_string("username", None,
-                    "Username on the cluster.")
+# don't need a user name
+# flags.DEFINE_string("username", None,
+#                     "Username on the cluster.")
 flags.DEFINE_string("pythonpath", None,
                     "Absolute path to the python executable (e.g. conda env).")
 flags.DEFINE_string("runpath", None,
@@ -32,15 +33,16 @@ flags.DEFINE_bool("check_existing", True,
                   "Set to False for re-running everything.")
 flags.DEFINE_bool("gpu", False, "Whether to use GPUs.")
 flags.mark_flag_as_required("experiment_name")
-flags.mark_flag_as_required("username")
-flags.mark_flag_as_required("pythonpath")
+# flags.mark_flag_as_required("username")
+# flags.mark_flag_as_required("pythonpath")
 flags.mark_flag_as_required("runpath")
 FLAGS = flags.FLAGS
 
 # Some values and paths to be set
-user = FLAGS.username
+# user = FLAGS.username
 project = "cfs"
-executable = FLAGS.pythonpath
+# executable = FLAGS.pythonpath #previous version
+executable = "python" # we are trying to just run python from the environment
 run_file = FLAGS.runpath
 
 num_gpus = 0

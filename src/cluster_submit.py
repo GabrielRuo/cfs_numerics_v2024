@@ -35,7 +35,7 @@ flags.DEFINE_bool("gpu", False, "Whether to use GPUs.")
 flags.mark_flag_as_required("experiment_name")
 # flags.mark_flag_as_required("username")
 # flags.mark_flag_as_required("pythonpath")
-flags.mark_flag_as_required("runpath")
+# flags.mark_flag_as_required("runpath")
 FLAGS = flags.FLAGS
 
 # Some values and paths to be set
@@ -43,7 +43,8 @@ FLAGS = flags.FLAGS
 project = "cfs"
 # executable = FLAGS.pythonpath #previous version
 executable = "python" # we are trying to just run python from the environment
-run_file = FLAGS.runpath
+run_file = "/home/x_rojon/cfs_numerics_v2024/src/run.py"
+# run_file = FLAGS.runpath
 
 num_gpus = 0
 num_cpus = 2
@@ -209,10 +210,5 @@ def main(_):
   print(f"DONE")
 
 
-# if __name__ == "__main__":
-#   app.run(main)
-if __name__ == '__main__':
-    try:
-        app.run(main)
-    except SystemExit:
-        pass
+if __name__ == "__main__":
+  app.run(main)

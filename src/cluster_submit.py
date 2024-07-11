@@ -151,7 +151,7 @@ def submit_all_jobs(args: Sequence[Dict[Text, Any]], config) -> None:
 
     # Check if activation was successful
     lines.append(f'if [ $? -ne 0 ]; then')
-    lines.append(f'echo "Error: Failed to activate Conda environment 'cfs_v2024_env'."')
+    lines.append(f'echo "Error: Failed to activate Conda environment cfs_v2024_env."')
     lines.append(f'exit 1')
     lines.append(f'fi')
 

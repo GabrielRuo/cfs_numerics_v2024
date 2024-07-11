@@ -29,7 +29,15 @@ flags.DEFINE_integer("n_runs", 10,
 flags.DEFINE_bool("check_existing", True,
                   "Check whether results for runs already exist and skip. "
                   "Set to False for re-running everything.")
-flags.DEFINE_bool("gpu", False, "Whether to use GPUs.")
+
+flags.DEFINE_integer("n_cpus", 1, "SBATCH -c flag. Number of CPUs.")
+flags.DEFINE_integer("memory", 1, "SBATCH --mem flag")
+flags.DEFINE_string("max_time", "00-06:00:00", "SBATCH --t flag")
+
+### need to review use of GPU!
+flags.DEFINE_bool("gpu", False, "Whether to use GPUs.") 
+flags.DEFINE_integer("n_gpus", 0, "SBATCH Number of GPUs.") #need to review use of GPU!
+
 flags.mark_flag_as_required("experiment_name")
 flags.mark_flag_as_required("runpath")
 FLAGS = flags.FLAGS
@@ -65,19 +73,22 @@ def submit_all_jobs(args: Sequence[Dict[Text, Any]], config) -> None:
   project = "cfs"
   executable = FLAGS.pythonpath
   
-  run_file = FLAGS.runpath # run_file = "/home/x_rojon/cfs_numerics_v2024/src/run.py"
-  
-  num_gpus = 0
-  num_cpus = 2
-  mem_mb = 12000
+  run_file = FLAGS.runpath 
+  num_gpus = FLAGS.n_gpus
+  num_cpus = FLAGS.n_cpus
+  mem_mb = FLAGS.memory
+  max_runtime = FLAGS.max_time
+  ## old lines
   # mem_mb = 64000
   # max_runtime = "02-23:59:00"
-  max_runtime = "00-00:59:00"
-  # Base of the submit file
+  # run_file = "/home/x_rojon/cfs_numerics_v2024/src/run.py"
+
+  
+  ## Base of the submit file
   base = list()
   base.append(f"#!/bin/bash")
   base.append("")
-  # base.append(f"#SBATCH -J {project}{'_gpu' if FLAGS.gpu else ''}")
+  # base.append(f"#SBATCH -J {project}{'_gpu' if FLAGS.gpu else ''}") ## moved into loop below
   base.append(f"#SBATCH -c {num_cpus}")
   base.append(f"#SBATCH --mem={mem_mb}")
   base.append(f"#SBATCH -t {max_runtime}")

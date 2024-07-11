@@ -107,7 +107,8 @@ def submit_all_jobs(args: Sequence[Dict[Text, Any]], config) -> None:
     lines = deepcopy(base)
     
     output_name = get_output_name(arg)
-    lines.append(f"#SBATCH -J {project+output_name}{'_gpu' if FLAGS.gpu else ''}")
+    lines.append(f"#SBATCH -J {output_name}{'_gpu' if FLAGS.gpu else ''}")
+    # lines.append(f"#SBATCH -J {project+output_name}{'_gpu' if FLAGS.gpu else ''}")
 
     # Directory for slurm logs
     result_dir = os.path.join(FLAGS.result_dir, FLAGS.experiment_name)

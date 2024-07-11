@@ -31,7 +31,7 @@ flags.DEFINE_bool("check_existing", True,
                   "Set to False for re-running everything.")
 
 flags.DEFINE_integer("n_cpus", 1, "SBATCH -c flag. Number of CPUs.")
-flags.DEFINE_integer("memory", 1, "SBATCH --mem flag")
+flags.DEFINE_integer("memory", 16000, "SBATCH --mem flag")
 flags.DEFINE_string("max_time", "00-06:00:00", "SBATCH --t flag")
 
 ### need to review use of GPU!

@@ -12,6 +12,8 @@ import configs
 
 Sweep = Dict[Text, Sequence[Any]]
 
+
+FLAGS = flags.FLAGS
 flags.DEFINE_string("experiment_name", None,
                     "The name of the experiment (used for output folder).")
 flags.DEFINE_string("config", None,
@@ -36,7 +38,7 @@ flags.mark_flag_as_required("experiment_name")
 # flags.mark_flag_as_required("username")
 # flags.mark_flag_as_required("pythonpath")
 # flags.mark_flag_as_required("runpath")
-FLAGS = flags.FLAGS
+# FLAGS = flags.FLAGS
 
 # Some values and paths to be set
 # user = FLAGS.username

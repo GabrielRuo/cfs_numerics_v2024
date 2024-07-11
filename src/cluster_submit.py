@@ -140,19 +140,19 @@ def submit_all_jobs(args: Sequence[Dict[Text, Any]], config) -> None:
     ## Activate Conda environment (assuming conda is properly initialized, and environment cfs_v2024_env created from setup_env.sh)
     # ChatGPT said: It's good practice to include error handling if conda.sh cannot be found
     lines.append(f'if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then')
-      lines.append(f'source $(conda info --base)/etc/profile.d/conda.sh')
+    lines.append(f'source $(conda info --base)/etc/profile.d/conda.sh')
     lines.append(f'else')
-      lines.append(f'echo "Error: conda.sh not found. Make sure Conda is properly installed and initialized."')
-      lines.append(f'exit 1')
+    lines.append(f'echo "Error: conda.sh not found. Make sure Conda is properly installed and initialized."')
+    lines.append(f'exit 1')
     lines.append(f'fi')
     
     # Activate the specific Conda environment
-     lines.append(f"conda activate cfs_v2024_env")
+    lines.append(f"conda activate cfs_v2024_env")
 
     # Check if activation was successful
     lines.append(f'if [ $? -ne 0 ]; then')
-      lines.append(f'echo "Error: Failed to activate Conda environment 'cfs_v2024_env'."')
-      lines.append(f'exit 1')
+    lines.append(f'echo "Error: Failed to activate Conda environment 'cfs_v2024_env'."')
+    lines.append(f'exit 1')
     lines.append(f'fi')
 
     # Queue job

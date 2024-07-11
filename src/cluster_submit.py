@@ -43,8 +43,8 @@ FLAGS = flags.FLAGS
 project = "cfs"
 # executable = FLAGS.pythonpath #previous version
 executable = "python" # we are trying to just run python from the environment
-run_file = "/home/x_rojon/cfs_numerics_v2024/src/run.py"
-# run_file = FLAGS.runpath
+# run_file = "/home/x_rojon/cfs_numerics_v2024/src/run.py"
+run_file = FLAGS.runpath
 
 num_gpus = 0
 num_cpus = 2

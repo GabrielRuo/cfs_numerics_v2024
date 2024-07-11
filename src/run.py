@@ -71,6 +71,9 @@ def main(_):
   # ---------------------------------------------------------------------------
   FLAGS.alsologtostderr = True
 
+  #measure time
+  start_time = datetime.now()
+  
   # Manage random seed
   output_name = FLAGS.output_name
   seed = FLAGS.seed
@@ -177,7 +180,9 @@ def main(_):
   results.update(bfgs_res)
   utils.write_checkpoint(final_params, 'parameters_last', out_dir, results)
 
-  logging.info("DONE")
+  elapsed_time = end_time - start_time
+  
+  logging.info("DONE. The script took {elapsed_time} to run.")
 
 
 if __name__ == "__main__":

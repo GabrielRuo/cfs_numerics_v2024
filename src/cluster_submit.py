@@ -20,10 +20,7 @@ flags.DEFINE_string("config", None,
                     "If `None` use config specified here in `main`.")
 flags.DEFINE_string("result_dir", "/home/results/",
                     "Base directory for all results.")
-# don't need a user name
-# flags.DEFINE_string("username", None,
-#                     "Username on the cluster.")
-flags.DEFINE_string("pythonpath", None,
+flags.DEFINE_string("pythonpath", "python",
                     "Absolute path to the python executable (e.g. conda env).")
 flags.DEFINE_string("runpath", None,
                     "Absolute path to the `run.py` file of this project.")
@@ -34,9 +31,7 @@ flags.DEFINE_bool("check_existing", True,
                   "Set to False for re-running everything.")
 flags.DEFINE_bool("gpu", False, "Whether to use GPUs.")
 flags.mark_flag_as_required("experiment_name")
-# flags.mark_flag_as_required("username")
-# flags.mark_flag_as_required("pythonpath")
-# flags.mark_flag_as_required("runpath")
+flags.mark_flag_as_required("runpath")
 FLAGS = flags.FLAGS
 
 
@@ -67,12 +62,10 @@ def get_flag(key: Text, value: Any) -> Text:
 def submit_all_jobs(args: Sequence[Dict[Text, Any]], config) -> None:
   """Generate submit scripts and launch them."""
   ## initial definitions (also from flags)
-  # user = FLAGS.username
   project = "cfs"
-  # executable = FLAGS.pythonpath #previous version
-  executable = "python" # we are trying to just run python from the environment
-  # run_file = "/home/x_rojon/cfs_numerics_v2024/src/run.py"
-  run_file = FLAGS.runpath
+  executable = FLAGS.pythonpath
+  
+  run_file = FLAGS.runpath # run_file = "/home/x_rojon/cfs_numerics_v2024/src/run.py"
   
   num_gpus = 0
   num_cpus = 2

@@ -66,6 +66,20 @@ def get_flag(key: Text, value: Any) -> Text:
 
 def submit_all_jobs(args: Sequence[Dict[Text, Any]], config) -> None:
   """Generate submit scripts and launch them."""
+  ## initial definitions (also from flags)
+  # user = FLAGS.username
+  project = "cfs"
+  # executable = FLAGS.pythonpath #previous version
+  executable = "python" # we are trying to just run python from the environment
+  # run_file = "/home/x_rojon/cfs_numerics_v2024/src/run.py"
+  run_file = FLAGS.runpath
+  
+  num_gpus = 0
+  num_cpus = 2
+  mem_mb = 12000
+  # mem_mb = 64000
+  # max_runtime = "02-23:59:00"
+  max_runtime = "00-00:59:00"
   # Base of the submit file
   base = list()
   base.append(f"#!/bin/bash")
@@ -179,22 +193,6 @@ def submit_all_jobs(args: Sequence[Dict[Text, Any]], config) -> None:
 
 def main(_):
   """Initiate multiple runs."""
-  ## initial definitions (also from flags)
-  # user = FLAGS.username
-  project = "cfs"
-  # executable = FLAGS.pythonpath #previous version
-  executable = "python" # we are trying to just run python from the environment
-  # run_file = "/home/x_rojon/cfs_numerics_v2024/src/run.py"
-  run_file = FLAGS.runpath
-  
-  num_gpus = 0
-  num_cpus = 2
-  mem_mb = 12000
-  # mem_mb = 64000
-  # max_runtime = "02-23:59:00"
-  max_runtime = "00-00:59:00"
-
-
   
   if FLAGS.config is None:
     # No predefined config specified. One example config for a sweep below.

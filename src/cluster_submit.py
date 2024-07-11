@@ -134,11 +134,13 @@ def submit_all_jobs(args: Sequence[Dict[Text, Any]], config) -> None:
     lines.append(f"#SBATCH -e {logs_dir}_%a/slurm.err")
 
     # Module purge and load (could be specific to Tetralith)
+    lines.append("")
     lines.append(f"module purge")
     lines.append(f"module load Anaconda/2023.09-0-hpc1")
 
     ## Activate Conda environment (assuming conda is properly initialized, and environment cfs_v2024_env created from setup_env.sh)
     # ChatGPT said: It's good practice to include error handling if conda.sh cannot be found
+    lines.append("")
     lines.append(f'if [ -f "$(conda info --base)/etc/profile.d/conda.sh" ]; then')
     lines.append(f'source $(conda info --base)/etc/profile.d/conda.sh')
     lines.append(f'else')
@@ -147,9 +149,11 @@ def submit_all_jobs(args: Sequence[Dict[Text, Any]], config) -> None:
     lines.append(f'fi')
     
     # Activate the specific Conda environment
+    lines.append("")
     lines.append(f"conda activate cfs_v2024_env")
 
     # Check if activation was successful
+    lines.append("")
     lines.append(f'if [ $? -ne 0 ]; then')
     lines.append(f'echo "Error: Failed to activate Conda environment cfs_v2024_env."')
     lines.append(f'exit 1')

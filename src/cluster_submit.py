@@ -42,7 +42,7 @@ FLAGS = flags.FLAGS
 # Some values and paths to be set
 # user = FLAGS.username
 project = "cfs"
-# executable = FLAGS.pythonpath #previous version
+executable = FLAGS.pythonpath #previous version
 executable = "python" # we are trying to just run python from the environment
 # run_file = "/home/x_rojon/cfs_numerics_v2024/src/run.py"
 run_file = FLAGS.runpath

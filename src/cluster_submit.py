@@ -90,7 +90,7 @@ def submit_all_jobs(args: Sequence[Dict[Text, Any]], config) -> None:
   base.append("")
   # base.append(f"#SBATCH -J {project}{'_gpu' if FLAGS.gpu else ''}") ## moved into loop below
   base.append(f"#SBATCH -c {num_cpus}")
-  base.append(f"#SBATCH --mem={mem_mb}")
+  # base.append(f"#SBATCH --mem={mem_mb}") #not needed on Tetralith
   base.append(f"#SBATCH -t {max_runtime}")
   base.append(f"#SBATCH --nice=10000")
   if FLAGS.gpu:

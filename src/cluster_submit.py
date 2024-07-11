@@ -77,7 +77,7 @@ def submit_all_jobs(args: Sequence[Dict[Text, Any]], config) -> None:
   base = list()
   base.append(f"#!/bin/bash")
   base.append("")
-  base.append(f"#SBATCH -J {project}{'_gpu' if FLAGS.gpu else ''}")
+  # base.append(f"#SBATCH -J {project}{'_gpu' if FLAGS.gpu else ''}")
   base.append(f"#SBATCH -c {num_cpus}")
   base.append(f"#SBATCH --mem={mem_mb}")
   base.append(f"#SBATCH -t {max_runtime}")
@@ -94,7 +94,9 @@ def submit_all_jobs(args: Sequence[Dict[Text, Any]], config) -> None:
   skipped_runs = 0
   for i, arg in enumerate(args):
     lines = deepcopy(base)
+    
     output_name = get_output_name(arg)
+    lines.append(f"#SBATCH -J {project+output_name}{'_gpu' if FLAGS.gpu else ''}")
 
     # Directory for slurm logs
     result_dir = os.path.join(FLAGS.result_dir, FLAGS.experiment_name)

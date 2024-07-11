@@ -182,7 +182,7 @@ def main(_):
 
   elapsed_time = end_time - start_time
   
-  logging.info("DONE. The script took {elapsed_time} to run.")
+  logging.info(f"DONE. The script took {elapsed_time} to run.")
 
 if __name__ == "__main__":
   config.config_with_absl()

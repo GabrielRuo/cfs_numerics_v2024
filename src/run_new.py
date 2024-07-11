@@ -180,7 +180,7 @@ def main(_):
   results.update(bfgs_res)
   utils_new.write_checkpoint(final_params, 'parameters_last', out_dir, results)
 
-  elapsed_time = end_time - start_time
+  elapsed_time = datetime.now() - start_time
   
   logging.info(f"DONE. The script took {elapsed_time} to run.")
 

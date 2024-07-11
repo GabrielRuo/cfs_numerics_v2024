@@ -39,6 +39,9 @@ flags.mark_flag_as_required("experiment_name")
 # flags.mark_flag_as_required("runpath")
 FLAGS = flags.FLAGS
 
+#Trying to parse flags
+flags.parse_flags()
+
 # Some values and paths to be set
 # user = FLAGS.username
 project = "cfs"

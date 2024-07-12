@@ -32,7 +32,7 @@ flags.DEFINE_bool("check_existing", True,
 
 flags.DEFINE_integer("n_cpus", 1, "SBATCH -c flag. Number of CPUs.")
 flags.DEFINE_integer("memory", 16000, "SBATCH --mem flag")
-flags.DEFINE_string("max_time", "00-06:00:00", "SBATCH --t flag")
+flags.DEFINE_string("max_time", "00-12:00:00", "SBATCH --t flag")
 
 ### need to review use of GPU!
 flags.DEFINE_bool("gpu", False, "Whether to use GPUs.") 
@@ -90,7 +90,7 @@ def submit_all_jobs(args: Sequence[Dict[Text, Any]], config) -> None:
   base.append("")
   # base.append(f"#SBATCH -J {project}{'_gpu' if FLAGS.gpu else ''}") ## moved into loop below
   base.append(f"#SBATCH -c {num_cpus}")
-  # base.append(f"#SBATCH --mem={mem_mb}") #not needed on Tetralith
+  base.append(f"#SBATCH --mem={mem_mb}") #not needed on Tetralith
   base.append(f"#SBATCH -t {max_runtime}")
   base.append(f"#SBATCH --nice=10000")
   if FLAGS.gpu:

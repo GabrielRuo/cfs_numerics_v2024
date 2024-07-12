@@ -28,8 +28,8 @@ script_dir="$(dirname "$0")"
 
 # Launching jobs for all experiments
 
-python "${script_dir}/src/cluster_submit.py" --experiment_name=n1_testing --config=gabs_test --n_runs 1 --runpath=/home/x_rojon/cfs_numerics_v2024/src/run.py --result_dir=/home/x_rojon/results/
+python "${script_dir}/src/cluster_submit.py" --experiment_name=n1_testing_0712 --config=gabs_test --n_runs 1 --runpath=/home/x_rojon/cfs_numerics_v2024/src/run.py --result_dir=/home/x_rojon/results/
 
-python "${script_dir}/src/cluster_submit.py" --experiment_name=n1_testing --config=gabs_test --n_runs 1 --runpath=/home/x_rojon/cfs_numerics_v2024/src/run_new.py --result_dir=/home/x_rojon/results_new/
+python "${script_dir}/src/cluster_submit.py" --experiment_name=n1_testing_0712 --config=gabs_test --n_runs 1 --runpath=/home/x_rojon/cfs_numerics_v2024/src/run_new.py --result_dir=/home/x_rojon/results_new/
 
 

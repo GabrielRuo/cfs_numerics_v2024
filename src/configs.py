@@ -4,8 +4,8 @@ import analytical_results
 configurations = {
   "gabs_test": {
     "sweep": {
-      "m": [4, 8, 16, 32, 64, 128, 256],
-      "f": [2, 3, 4, 6, 8, 12, 16, 24, 32]
+      "m": [256],
+      "f": [6, 8, 12, 16, 24, 32]
     },
     "fixed": {
       "n": 1,

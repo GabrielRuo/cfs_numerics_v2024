@@ -161,7 +161,7 @@ def main(_):
   # Optimization and writing results
   # ---------------------------------------------------------------------------
   final_params, bfgs_res = utils_new.optimize_optimistix(
-    params_0, FLAGS.n, FLAGS.f, FLAGS.m, FLAGS.bfgs_maxiter, FLAGS.bfgs_rtol, FLAGS.bfgs_atol,out_dir)
+    params_0, FLAGS.n, FLAGS.f, FLAGS.m, FLAGS.bfgs_maxiter, FLAGS.bfgs_rtol, FLAGS.bfgs_atol)#note one could add a boundedness constraint
   logging.info(f"Store final results and parameters...")
   results.update(bfgs_res)
   utils_new.write_checkpoint(final_params, 'parameters_last', out_dir, results)

@@ -4,3 +4,4 @@ jaxlib==0.4.26
 jedi==0.19.1
 numpy==1.26.4
 scipy==1.11.4
+optimistix==0.0.7

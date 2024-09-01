@@ -9,6 +9,7 @@ from jax.nn import softmax, relu
 # from jax.ops import index_update, index
 #from jax.scipy.linalg import expm
 from scipy.optimize import minimize
+import optimistix
 
 Params = Tuple[jnp.ndarray, ...]
 Results = Dict[Text, Union[jnp.ndarray, list, float]]
@@ -59,9 +60,9 @@ def write_checkpoint(params: Params,
         in the same directory as `results.npz`.
   """
   result_path = os.path.join(out_dir, f"{name}.npz")
-  weights, pos_spectrum, neg_spectrum, block_ul, block_ur = params
+  weights, pos_spectrum, neg_spectrum, alphas, betas = params
   np.savez(result_path, weights=weights, pos_spectrum=pos_spectrum,
-           neg_spectrum=neg_spectrum, block_ul=block_ul, block_ur=block_ur)
+           neg_spectrum=neg_spectrum, alphas=alphas, betas=betas)
   if results is not None:
     results.update(collect_results(params))
     result_path = os.path.join(out_dir, "results.npz")
@@ -442,7 +443,7 @@ def _action_flat_params(params: jnp.ndarray, n: int, f: int, m: int) -> float:
   return action(params)
 
 
-def optimize(params: Params,
+def optimize_scipy(params: Params,
              n: int,
              f: int,
              m: int,
@@ -569,3 +570,202 @@ def optimize(params: Params,
   results['action'].append(act)
   results['boundedness'].append(bnd)
   return final_params, {k: np.array(v) for k, v in results.items()}
+
+#--------------------------------------------
+#Optimization with optimistix, both unconstrained and constrained 
+#--------------------------------------------
+
+#Constrained optimization
+
+def action_with_barrier_bnd_constraint(params:Params, bnd_constraint, k):
+  """
+  params are the original params without kkt multiplier or slack variable
+  """
+  action = action(params)
+  bnd = boundedness(params)
+  barrier = -(1/k)*jnp.log(-(bnd-bnd_constraint))
+
+  return action + barrier
+
+def action_with_barrier_flat_params(params: jnp.ndarray, n: int, f: int, m: int, bnd_constraint, k) -> float:
+  """Action computation for bfgs optimization."""
+  params = _reconstruct_params(params, n, f, m)
+  return action_with_barrier_bnd_constraint(params, bnd_constraint, k)
+
+def feasibility_cost(params,bnd_constraint):
+  bnd = boundedness(params)
+  return relu(bnd-bnd_constraint)
+
+def _feasibility_cost_flat_params(params,n,f,m,bnd_constraint):
+  params = _reconstruct_params(params, n, f, m)
+  return feasibility_cost(params,bnd_constraint)
+
+class Optimistix_BFGS_Solver():
+  """
+  Define 3 solvers, one to solve the initial feasibility, one for unconstrained optimisation, one for constrained optimisation
+
+  """
+
+  def __init__(self, max_iter, rtol, atol):
+        self.max_iter = max_iter
+        self.rtol = rtol
+        self.atol = atol
+
+  @staticmethod
+  def _feasibility_cost_with_args(params, args):
+      n,f,m,bnd_constraint = args
+      return _feasibility_cost_flat_params(params, n, f, m, bnd_constraint)
+
+  @staticmethod
+  def _action_with_args(params, args):
+      n,f,m = args
+      return _action_flat_params(params, n, f, m)
+  @staticmethod
+
+  def _action_with_barrier_and_args(params, args):
+      n,f,m, bnd_constraint, k = args
+      return action_with_barrier_flat_params(params, n, f, m, bnd_constraint, k)
+
+  def _optimize(self, objective_function, params_0, args):
+      """
+      Helper method to set up and run the optimizer.
+
+      Parameters:
+      objective_function: The function to minimize
+      params_0: Initial parameters
+      args: Arguments to pass to the objective function
+
+      Returns:
+      Optimized parameters after minimization
+      """
+      f_act = jit(objective_function, static_argnums=1)
+
+      solver = optimistix.BFGS(rtol=self.rtol, atol=self.atol)
+      solution = optimistix.minimise(
+          fn=f_act,
+          solver=solver,
+          y0=params_0,
+          args=args,
+          max_steps=self.max_iter,
+          throw=True
+      )
+      return solution
+
+  def satisfy_feasibility(self, params_0, n, f, m, bnd_constraint):
+      """
+      Find initial feasible parameters.
+
+      Parameters:
+      params_0: Initial parameters
+      n, f, m, bnd_constraint: Parameters required for the feasibility function
+
+      Returns:
+      Feasible parameters after optimization
+      """
+      return self._optimize(
+          self._feasibility_cost_with_args,
+          params_0,
+          (n, f, m, bnd_constraint)
+      )
+
+  def minimise_unconstrained_action(self, params_0, n, f, m):
+      """
+      Minimize the action function.
+
+      Parameters:
+      params_0: Initial parameters
+      n, f, m: Parameters required for the action function
+
+      Returns:
+      Optimized parameters after minimization
+      """
+      return self._optimize(
+          self._action_with_args,
+          params_0,
+          (n, f, m)
+      )
+  def minimise_constrained_action(self, params_0, n, f, m, bnd_constraint, k):
+      """
+      Minimize the action function under the boundedness constraint
+
+      Parameters:
+      params_0: Initial parameters
+      n, f, m: Parameters required for the action function
+
+      Returns:
+      Optimized parameters after minimization
+      """
+      return self._optimize(
+          self._action_with_barrier_and_args,
+          params_0,
+          (n, f, m, bnd_constraint, k)
+      )
+  
+
+def optimize_optimistix(params: Params,
+            n: int,
+            f: int,
+            m: int,
+            max_iter: int, 
+            rtol: int, 
+            atol:int,
+            out_dir: Text,
+            bnd_constraint = None) -> Tuple[Params, Results]:
+  """Wrapper around the scipy BFGS minimizer that also collects results.
+
+  Args:
+    params: The tuple of optimization parameters.
+    n: The desired spin dimension.
+    f: The desired number of particles.
+    m: The desired cardinality of the support of the discrete measure.
+    lbfgs_options: The options to pass to L-BFGS. If the argument is None or the
+        maxiter option is 0, don't run L-BFGS at all.
+    bfgs_options: The options to pass to BFGS. If the argument is None or the
+        maxiter option is 0, don't run BFGS at all.
+    out_dir: Where to write results.
+    checkpoint_freq: Frequency of parameter and result checkpoints.
+  """
+  solver = Optimistix_BFGS_Solver(max_iter, rtol, atol)
+
+  k = -10**3*jnp.log(0.1)*m*n**3
+  results = {
+    'action': [],
+    'boundedness': [],
+    'n_iterations': [],
+    'n': n,
+    'f': f,
+    'm': m
+  }
+
+  def run_constrained_optimisation(n,f,m,bnd_constraint,k):
+    # satisfy feasibility
+    solution = solver.satisfy_feasibility(params, n, f, m, bnd_constraint)
+    params = solution.value
+    # minimise constrained action
+    solution = solver.minimise_constrained_action(params,n,f,m,bnd_constraint,k)
+    return solution
+  
+  def run_unconstrained_optimisation_optimistix(n,f,m):
+    solution = solver.minimise_unconstrained_action(params, n, f, m)
+    return solution
+
+  if bnd_constraint == None: 
+    solution = run_unconstrained_optimisation_optimistix(params,n,f,m)
+  else:
+    solution = run_constrained_optimisation(params,n,f,m,bnd_constraint)
+
+  final_params = _reconstruct_params(solution.value, n, f, m)
+  act = action(final_params)
+  bnd = boundedness(final_params)
+  num_iter = int(solution.stats['num_steps'])
+
+  results['action'].append(act)
+  results['boundedness'].append(bnd)
+  results['n_iterations'].append(num_iter)
+
+  return final_params, {k: np.array(v) for k, v in results.items()}
+
+
+  
+
+  

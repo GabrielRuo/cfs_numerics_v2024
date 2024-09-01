@@ -31,16 +31,18 @@ flags.DEFINE_float("init_spectrum", 1,
                    "Initial absolute value of the mean of negative spectra."
                    "Will add 1/n to each of the positive one for trace = 1.")
 # ---------------------------- (L)BFGS PARAMETERS -----------------------------
-flags.DEFINE_integer("lbfgs_maxiter", 10_000,
+flags.DEFINE_integer("lbfgs_maxiter", 10_000,# for the future when we have LBFGS on optimistix
                      "Maximum number of iterations for LBFGS.")
 flags.DEFINE_float("lbfgs_gtol", 1e-7, "Gradient value tolerance for LBFGS.")
 flags.DEFINE_float("lbfgs_ftol", 1e-9, "Function value tolerance for LBFGS.")
 flags.DEFINE_integer("lbfgs_maxcor", 70,
                      "Max number of corrections for limited memory in LBFGS.")
 flags.DEFINE_integer("lbfgs_maxls", 20, "Maximum linesearch steps for LBFGS.")
-flags.DEFINE_integer("bfgs_maxiter", 5000,
+flags.DEFINE_integer("bfgs_maxiter", 10_000,
                      "Maximum number of iterations for BFGS.")
-flags.DEFINE_float("bfgs_gtol", 1e-7, "Gradient value tolerance for BFGS.")
+flags.DEFINE_float("bfgs_rtol", 1e-7, "Gradient value tolerance for BFGS.")
+flags.DEFINE_float("bfgs_atol", 1e-9, "Gradient value tolerance for BFGS.")
+
 flags.DEFINE_integer("max_m_bfgs", 1025,
                      "Only run BFGS when m is smaller than this number to "
                      "avoid out of memory errors. Full BFGS requires a lot of "
@@ -145,37 +147,21 @@ def main(_):
   results['m'] = FLAGS.m
 
   # ---------------------------------------------------------------------------
-  # Setup (L)BFGS options
+  # Setup BFGS options
   # ---------------------------------------------------------------------------
-  lbfgs_options = {
-    "maxiter": FLAGS.lbfgs_maxiter,
-    "maxfun": 2 * FLAGS.lbfgs_maxiter,
-    "disp": 50,
-    "gtol": FLAGS.lbfgs_gtol,
-    "ftol": FLAGS.lbfgs_ftol,
-    "maxcor": FLAGS.lbfgs_maxcor,
-    "maxls": FLAGS.lbfgs_maxls,
+  bfgs_options = {
+    "maxiter": FLAGS.bfgs_maxiter,
+    "rtol": FLAGS.bfgs_rtol,
+    "atol": FLAGS.bfgs_atol,
   }
-  logging.info(f"Run LBFGS for at most {FLAGS.lbfgs_maxiter} iterations.")
-  logging.info(f"   Settings: {lbfgs_options}")
-
-  if FLAGS.max_m_bfgs < FLAGS.m:
-    bfgs_options = None
-  else:
-    bfgs_options = {
-      "maxiter": FLAGS.bfgs_maxiter,
-      "disp": True,
-      "gtol": FLAGS.bfgs_gtol,
-    }
-    logging.info(f"Add BFGS for at most {FLAGS.bfgs_maxiter} iterations.")
-    logging.info(f"   Settings: {bfgs_options}")
-
+  logging.info(f"Run BFGS for at most {FLAGS.bfgs_maxiter} iterations.")
+  logging.info(f"   Settings: {bfgs_options}")
+ 
   # ---------------------------------------------------------------------------
   # Optimization and writing results
   # ---------------------------------------------------------------------------
-  final_params, bfgs_res = utils_new.optimize_scipy(
-    params_0, FLAGS.n, FLAGS.f, FLAGS.m, lbfgs_options, bfgs_options, out_dir,
-    FLAGS.checkpoint_freq)
+  final_params, bfgs_res = utils_new.optimize_optimistix(
+    params_0, FLAGS.n, FLAGS.f, FLAGS.m, FLAGS.bfgs_maxiter, FLAGS.bfgs_rtol, FLAGS.bfgs_atol,out_dir)
   logging.info(f"Store final results and parameters...")
   results.update(bfgs_res)
   utils_new.write_checkpoint(final_params, 'parameters_last', out_dir, results)

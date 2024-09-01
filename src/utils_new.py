@@ -579,7 +579,7 @@ def optimize_scipy(params: Params,
 
 def action_with_barrier_bnd_constraint(params:Params, bnd_constraint, k):
   """
-  params are the original params without kkt multiplier or slack variable
+  Action computation with a barrier function to enforce boundedness constraint.
   """
   action = action(params)
   bnd = boundedness(params)
@@ -613,16 +613,19 @@ class Optimistix_BFGS_Solver():
 
   @staticmethod
   def _feasibility_cost_with_args(params, args):
+      """params are flattened params, ndarray"""
       n,f,m,bnd_constraint = args
       return _feasibility_cost_flat_params(params, n, f, m, bnd_constraint)
 
   @staticmethod
   def _action_with_args(params, args):
+      """params are flattened params, ndarray"""
       n,f,m = args
       return _action_flat_params(params, n, f, m)
   @staticmethod
 
   def _action_with_barrier_and_args(params, args):
+      """params are flattened params, ndarray"""
       n,f,m, bnd_constraint, k = args
       return action_with_barrier_flat_params(params, n, f, m, bnd_constraint, k)
 
@@ -709,7 +712,6 @@ def optimize_optimistix(params: Params,
             max_iter: int, 
             rtol: int, 
             atol:int,
-            out_dir: Text,
             bnd_constraint = None) -> Tuple[Params, Results]:
   """Wrapper around the scipy BFGS minimizer that also collects results.
 
@@ -726,6 +728,7 @@ def optimize_optimistix(params: Params,
     checkpoint_freq: Frequency of parameter and result checkpoints.
   """
   solver = Optimistix_BFGS_Solver(max_iter, rtol, atol)
+  params = _flatten_params(params)
 
   k = -10**3*jnp.log(0.1)*m*n**3
   results = {

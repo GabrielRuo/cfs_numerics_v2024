@@ -737,22 +737,17 @@ def optimize_optimistix(params: Params,
     'm': m
   }
 
-  def run_constrained_optimisation(n,f,m,bnd_constraint,k):
-    # satisfy feasibility
-    solution = solver.satisfy_feasibility(params, n, f, m, bnd_constraint)
+
+  if bnd_constraint == None: 
+    solution = solver.minimise_unconstrained_action(params, n, f, m)
+   
+  else:
+     # satisfy feasibility
+    solver.satisfy_feasibility(params, n, f, m, bnd_constraint)
     params = solution.value
     # minimise constrained action
     solution = solver.minimise_constrained_action(params,n,f,m,bnd_constraint,k)
-    return solution
-  
-  def run_unconstrained_optimisation_optimistix(n,f,m):
-    solution = solver.minimise_unconstrained_action(params, n, f, m)
-    return solution
-
-  if bnd_constraint == None: 
-    solution = run_unconstrained_optimisation_optimistix(params,n,f,m)
-  else:
-    solution = run_constrained_optimisation(params,n,f,m,bnd_constraint)
+    
 
   final_params = _reconstruct_params(solution.value, n, f, m)
   act = action(final_params)

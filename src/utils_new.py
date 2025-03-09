@@ -675,8 +675,8 @@ def _feasibility_cost_with_args(params, args):
     Returns:
         float: The feasibility cost.
     """
-    n,f,m,bnd_constraint = args
-    return _feasibility_cost_flat_params(params, n, f, m, bnd_constraint)
+  n,f,m,bnd_constraint = args
+  return _feasibility_cost_flat_params(params, n, f, m, bnd_constraint)
   
 #Unconstrained optimization
 def _action_with_args(params, args):
@@ -744,7 +744,7 @@ class Optimistix_BFGS_Solver():
       Feasible parameters after optimization
       """
       return self._optimize(
-          self._feasibility_cost_with_args,
+          _feasibility_cost_with_args,
           params_0,
           (n, f, m, bnd_constraint)
       )
@@ -761,7 +761,7 @@ class Optimistix_BFGS_Solver():
       Optimized parameters after minimization
       """
       return self._optimize(
-          self._action_with_args,
+          _action_with_args,
           params_0,
           (n, f, m)
       )
@@ -777,7 +777,7 @@ class Optimistix_BFGS_Solver():
       Optimized parameters after minimization
       """
       return self._optimize(
-          self._action_with_barrier_and_args,
+          _action_with_barrier_and_args,
           params_0,
           (n, f, m, bnd_constraint, k)
       )

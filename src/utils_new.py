@@ -575,48 +575,124 @@ def optimize_scipy(params: Params,
 # -----------------------------------------------------------------------------
 #Constrained optimization
 
-def action_with_barrier_bnd_constraint(params:Params, bnd_constraint, k):
-  """
-  Action computation with a barrier function to enforce boundedness constraint.
-  """
+def _action_with_barrier_bnd_constraint(params:Params, bnd_constraint, k):
+  """Computes the causal action function with a barrier function for boundedness constraints
+
+    Args:
+        params (Params): Tuple of optimization parameters.
+        bnd_constraint (float): Upper bound for the boundedness constraint.
+        k (float): Barrier scaling parameter.
+        
+    Returns:
+        float: The computed action value with the barrier function applied.
+    """
   action = action(params)
   bnd = boundedness(params)
   barrier = -(1/k)*jnp.log(-(bnd-bnd_constraint))
 
   return action + barrier
 
-def action_with_barrier_flat_params(params: jnp.ndarray, n: int, f: int, m: int, bnd_constraint, k) -> float:
-  """Action computation with a barrier function to enforce boundedness constraint.
-  Adapted to be given as input to optimistix.BFGS"""
+def _action_with_barrier_flat_params(params: jnp.ndarray, n: int, f: int, m: int, bnd_constraint, k) -> float:
+  """Computes the causal action function with a barrier function for boundedness constraints with flat input parameters
+    Args:
+        params (jnp.ndarray): Flattened array of parameters.
+        n (int): Spin dimension.
+        f (int): Number of particles.
+        m (int): Cardinality of the support.
+        bnd_constraint (float): Upper bound for the boundedness constraint.
+        k (float): Barrier scaling parameter.
+
+    Returns:
+        float: The computed action value with the barrier function applied.
+    """
   params = _reconstruct_params(params, n, f, m)
-  return action_with_barrier_bnd_constraint(params, bnd_constraint, k)
+  return _action_with_barrier_bnd_constraint(params, bnd_constraint, k)
 
 def _action_with_barrier_and_args(params, args):
-    """params are flattened params, ndarray"""
+    """Computes the causal action function with a barrier function for boundedness constraints.
+
+    This function is used for constrained optimization, where a logarithmic
+    barrier function is added to enforce the boundedness constraint.
+
+    Adapted to be given as input to optimistix.BFGS
+
+    Args:
+        params (jnp.ndarray): Flattened array of parameters.
+        args (Tuple[int, int, int, float, float]): Tuple containing:
+            - n (int): Spin dimension.
+            - f (int): Number of particles.
+            - m (int): Cardinality of the support.
+            - bnd_constraint (float): Upper bound for the boundedness constraint.
+            - k (float): Barrier scaling parameter.
+
+    Returns:
+        float: The computed action value with the barrier function applied.
+    """
     n,f,m, bnd_constraint, k = args
-    return action_with_barrier_flat_params(params, n, f, m, bnd_constraint, k)
+    return _action_with_barrier_flat_params(params, n, f, m, bnd_constraint, k)
 
 
 def _feasibility_cost(params,bnd_constraint):
-  """ Computes the cost function to solve the feasibility problem"""
+  """Computes the feasibility cost function.
+
+    Args:
+        params (Params): Tuple of optimization parameters.
+        bnd_constraint (float): Upper bound for the boundedness constraint.
+
+    Returns:
+        float: the feasibility cost.
+    """
   bnd = boundedness(params)
   return relu(bnd-bnd_constraint)
 
 def _feasibility_cost_flat_params(params,n,f,m,bnd_constraint):
-  """ Computes the cost function to solve the feasibility problem
-      Adapted to be given as input to optimistix.BFGS
-  """
+  """Computes the feasibility cost function for flat parameters.
+
+    Args:
+        params (jnp.ndarray): Flattened array of parameters.
+        n (int): Spin dimension.
+        f (int): Number of particles.
+        m (int): Cardinality of the support.
+        bnd_constraint (float): Upper bound for the boundedness constraint.
+
+    Returns:
+        float: The feasibility cost.
+    """
   params = _reconstruct_params(params, n, f, m)
   return _feasibility_cost(params,bnd_constraint)
   
 def _feasibility_cost_with_args(params, args):
-    """params are flattened params, ndarray"""
+  """Computes the feasibility cost function
+    Adapted to be given as input to optimistix.BFGS
+    Args:
+        params (jnp.ndarray): Flattened array of parameters.
+        args (Tuple[int, int, int, float]): Tuple containing:
+            - n (int): Spin dimension.
+            - f (int): Number of particles.
+            - m (int): Cardinality of the support.
+            - bnd_constraint (float): Upper bound for the boundedness constraint.
+
+    Returns:
+        float: The feasibility cost.
+    """
     n,f,m,bnd_constraint = args
     return _feasibility_cost_flat_params(params, n, f, m, bnd_constraint)
   
 #Unconstrained optimization
 def _action_with_args(params, args):
-    """params are flattened params, ndarray"""
+    """Computes the causal action function given flattened parameters.
+    Adapted to be given as input to optimistix.BFGS
+
+    Args:
+        params (jnp.ndarray): Flattened array of parameters.
+        args (Tuple[int, int, int]): Tuple containing:
+            - n (int): Spin dimension.
+            - f (int): Number of particles.
+            - m (int): Cardinality of the support.
+
+    Returns:
+        float: The computed action value.
+    """
     n,f,m = args
     return _action_flat_params(params, n, f, m)
 

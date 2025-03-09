@@ -48,7 +48,7 @@ flags.DEFINE_integer("max_m_bfgs", 1025,
                      "avoid out of memory errors. Full BFGS requires a lot of "
                      "memory.")
 # ---------------------------- OUTPUT -----------------------------------------
-flags.DEFINE_string("output_dir", "../results_new/",
+flags.DEFINE_string("output_dir", "../results_new_optimistix/",
                     "Path to the output directory (for results).")
 flags.DEFINE_string("output_name", "",
                     "Name for result folder. Use timestamp if empty.")

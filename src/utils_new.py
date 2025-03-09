@@ -94,7 +94,7 @@ def init_params(key: jnp.ndarray, n: int, f: int, m: int,
     a 5-tuple of initial parameters:
         weights: The weights of the discrete measure (m,); real
         pos_spectrum: initial log values of pos spectrum (m, n); real
-        neg_spectrum: initial log values of pos spectrum (m, n); real
+        neg_spectrum: initial log values of neg spectrum (m, n); real
         alphas: initial values of the alpha angles used to define the unitary (m,n(2f-2n-1)): real
         betas: initial values of the beta angles used to define the unitary (m,n(2f-2n-1)): real
   """
@@ -119,17 +119,16 @@ def init_params(key: jnp.ndarray, n: int, f: int, m: int,
 
 def make_spectra(pos_spectrum: jnp.ndarray,
                  neg_spectrum: jnp.ndarray) -> jnp.ndarray:
-  """Compute actual spectra from optimization parameters.
-
-  The spectra have to have n positive and n negative eigenvalues
-  and satisfy the trace constraint, which we ensure here.
+  """Computes the full eigenvalue spectrum of each spacetime point,
+  ensuring the trace constraint is satisfied and that the spectrum has
+  n positive and n negative eigenvalues.
 
   Args:
-    pos_spectrum: Optimization parameters for positive eigenvalues.
-    neg_spectrum: Optimization parameters for negative eigenvalues.
+    pos_spectrum: initial log values of pos spectrum (m, n); real
+    neg_spectrum: initial log values of neg spectrum (m, n); real
 
   Returns:
-    Full (m, 2 n) array of the m spectra
+     (m, 2 n) array of the m spectra
   """
   spectra = jnp.concatenate((jnp.exp(pos_spectrum), - jnp.exp(neg_spectrum)), 1)
   return spectra / jnp.sum(spectra, axis=1)[..., jnp.newaxis]
@@ -155,14 +154,13 @@ def get_building_blocks(alphas:jnp.ndarray, betas:jnp.ndarray):
 
 def make_masks(f:int,n_col:int, band_number:int):
 
-  """construct the masks which will be used to build the band unitaries. 
-  The masks are arrays of Booleans which will be used to select the correct terms in the building blocks.
-  Each building block is associated with an array of masks: for example,  mask_sin is
-  an array of masks for all the sin(beta_j)s: sin(beta_j) has a corresponding mask matrix with True where sin(beta_j) 
+  """Generates boolean masks that position the building blocks correctly in the band-matrix representation of unitary matrices.
+  
+  Each building block is associated with an array of masks.
+  For example,  mask_sin is an array of masks for all the sin(beta_j)s: sin(beta_j) has a corresponding mask matrix with True where sin(beta_j) 
   is and False elsewhere. 
+  
   The masks are constructed in such a way that the multiplication of the building blocks with the masks will give the correct terms in the band unitary
-
-
 
   Args:
     f: the number of particles
@@ -185,17 +183,17 @@ def make_masks(f:int,n_col:int, band_number:int):
   return mask_cos_exp_pos, mask_cos_exp_neg,mask_sin
 
 def make_single_band_unitary(alphas_band: jnp.ndarray,betas_band: jnp.ndarray,f:int,n_col:int):
-  """Use the angle parameters and the masks to generate a unitary band matrix
+  """Constructs a single band-matrix corresponding to a specific level in the unitary decomposition.
 
     Args:
 
     alphas_band: shape (f-band_number,)
     betas_band: shape (f-band_number,)
     f: dimension of the matrix (number of  particles)
-    n_col: number of columns of the unitary which we want to build
+    n_col: number of columns of the band-matrix which we want to build
 
   Returns:
-    n_col first columns of band  unitary matrix (f, n_col)
+    n_col first columns of band matrix (f, n_col)
     """
   band_number = f - len(alphas_band)
 
@@ -234,7 +232,7 @@ def make_single_band_unitary(alphas_band: jnp.ndarray,betas_band: jnp.ndarray,f:
   return band_matrix
 
 def make_single_eigenvectors(alphas: jnp.ndarray ,betas:jnp.ndarray,f:int, n:int):
-  """Use the angle parameters to build the 2n first eigenvectors of a spacetime point  x
+  """Constructs the first 2n eigenvectors of a spacetime point using the band-matrix decomposition.
 
     Args:
     f: dimension of the matrix (number of  particles)
@@ -314,12 +312,11 @@ def make_lagrangian_n(spectra: jnp.ndarray,eigenvectors: jnp.ndarray, i: int, j:
 
 
 def action(params: Params) -> float:
-  """Constructs the  action functional from the parameters. 
-  Considers contributions from all spacetime  points which are defined by the params
+  """Computes the Causal Action by summing over all pairwise Lagrangians, weighted by the measure.
 
   Args:
     params: The 5-tuple of parameters (weights, positive spectrum,
-        negative spectrum, alphas, betas).
+        negative spectrum, alphas, betas) defining the spacetime points
 
   Returns:
     single float for the value of the action
@@ -349,7 +346,7 @@ def action(params: Params) -> float:
   act += jnp.sum(weights ** 2 * lag_ij)
   return act
 
-def boundedness_summand(spectra: jnp.ndarray,eigenvectors: jnp.ndarray, i: int, j: int) -> float:
+def _boundedness_summand(spectra: jnp.ndarray,eigenvectors: jnp.ndarray, i: int, j: int) -> float:
   """The summand involved in the computation of the boundary functional, for a given single pair of spacetime points
   Args:
     spectra: (m,2n)
@@ -375,7 +372,7 @@ def boundedness(params: Params) -> float:
         negative spectrum, alphas, betas).
 
   Returns:
-    single float for the value of the action
+    single float for the value of the boundedness
   """
   weights, pos_spectrum, neg_spectrum, alphas, betas = params
   weights = softmax(weights)
@@ -385,7 +382,7 @@ def boundedness(params: Params) -> float:
 
   eigenvectors = make_eigenvectors(alphas, betas, f, n)
 
-  make_bnd = vmap(boundedness_summand, (None, None, 0, 0))
+  make_bnd = vmap(_boundedness_summand, (None, None, 0, 0))
 
   # Only looking at upper triangle (without diagonal)
   rows, cols = jnp.triu_indices(m, k=1)
@@ -451,7 +448,9 @@ def optimize_scipy(params: Params,
              bfgs_options: Dict[Text, Any],
              out_dir: Text,
              checkpoint_freq: int) -> Tuple[Params, Results]:
-  """Wrapper around the scipy BFGS minimizer that also collects results.
+  """
+  Optimizes the action using Scipy’s L-BFGS and BFGS solvers
+  It provides a wrapper around the minimizers that also collects results using a checkpointing function
 
   Args:
     params: The tuple of optimization parameters.
@@ -571,10 +570,9 @@ def optimize_scipy(params: Params,
   results['boundedness'].append(bnd)
   return final_params, {k: np.array(v) for k, v in results.items()}
 
-#--------------------------------------------
+# -----------------------------------------------------------------------------
 #Optimization with optimistix, both unconstrained and constrained 
-#--------------------------------------------
-
+# -----------------------------------------------------------------------------
 #Constrained optimization
 
 def action_with_barrier_bnd_constraint(params:Params, bnd_constraint, k):
@@ -588,17 +586,39 @@ def action_with_barrier_bnd_constraint(params:Params, bnd_constraint, k):
   return action + barrier
 
 def action_with_barrier_flat_params(params: jnp.ndarray, n: int, f: int, m: int, bnd_constraint, k) -> float:
-  """Action computation for bfgs optimization."""
+  """Action computation with a barrier function to enforce boundedness constraint.
+  Adapted to be given as input to optimistix.BFGS"""
   params = _reconstruct_params(params, n, f, m)
   return action_with_barrier_bnd_constraint(params, bnd_constraint, k)
 
-def feasibility_cost(params,bnd_constraint):
+def _action_with_barrier_and_args(params, args):
+    """params are flattened params, ndarray"""
+    n,f,m, bnd_constraint, k = args
+    return action_with_barrier_flat_params(params, n, f, m, bnd_constraint, k)
+
+
+def _feasibility_cost(params,bnd_constraint):
+  """ Computes the cost function to solve the feasibility problem"""
   bnd = boundedness(params)
   return relu(bnd-bnd_constraint)
 
 def _feasibility_cost_flat_params(params,n,f,m,bnd_constraint):
+  """ Computes the cost function to solve the feasibility problem
+      Adapted to be given as input to optimistix.BFGS
+  """
   params = _reconstruct_params(params, n, f, m)
-  return feasibility_cost(params,bnd_constraint)
+  return _feasibility_cost(params,bnd_constraint)
+  
+def _feasibility_cost_with_args(params, args):
+    """params are flattened params, ndarray"""
+    n,f,m,bnd_constraint = args
+    return _feasibility_cost_flat_params(params, n, f, m, bnd_constraint)
+  
+#Unconstrained optimization
+def _action_with_args(params, args):
+    """params are flattened params, ndarray"""
+    n,f,m = args
+    return _action_flat_params(params, n, f, m)
 
 class Optimistix_BFGS_Solver():
   """
@@ -610,24 +630,6 @@ class Optimistix_BFGS_Solver():
         self.max_iter = max_iter
         self.rtol = rtol
         self.atol = atol
-
-  @staticmethod
-  def _feasibility_cost_with_args(params, args):
-      """params are flattened params, ndarray"""
-      n,f,m,bnd_constraint = args
-      return _feasibility_cost_flat_params(params, n, f, m, bnd_constraint)
-
-  @staticmethod
-  def _action_with_args(params, args):
-      """params are flattened params, ndarray"""
-      n,f,m = args
-      return _action_flat_params(params, n, f, m)
-  @staticmethod
-
-  def _action_with_barrier_and_args(params, args):
-      """params are flattened params, ndarray"""
-      n,f,m, bnd_constraint, k = args
-      return action_with_barrier_flat_params(params, n, f, m, bnd_constraint, k)
 
   def _optimize(self, objective_function, params_0, args):
       """
@@ -713,20 +715,34 @@ def optimize_optimistix(params: Params,
             rtol: int, 
             atol:int,
             bnd_constraint = None) -> Tuple[Params, Results]:
-  """Wrapper around the scipy BFGS minimizer that also collects results.
+  """Performs optimization using the Optimistix BFGS solver.
 
-  Args:
-    params: The tuple of optimization parameters.
-    n: The desired spin dimension.
-    f: The desired number of particles.
-    m: The desired cardinality of the support of the discrete measure.
-    lbfgs_options: The options to pass to L-BFGS. If the argument is None or the
-        maxiter option is 0, don't run L-BFGS at all.
-    bfgs_options: The options to pass to BFGS. If the argument is None or the
-        maxiter option is 0, don't run BFGS at all.
-    out_dir: Where to write results.
-    checkpoint_freq: Frequency of parameter and result checkpoints.
-  """
+    This function optimizes an objective function using the BFGS algorithm provided by 
+    Optimistix. It supports both unconstrained and constrained optimization, depending 
+    on whether a boundedness constraint is specified.
+
+    Args:
+        params: Initial parameters for optimization.
+        n: The spin dimension.
+        f: The number of particles.
+        m: The cardinality of the support of the discrete measure.
+        max_iter: Maximum number of iterations for the optimizer.
+        rtol: Relative tolerance for stopping criteria.
+        atol: Absolute tolerance for stopping criteria.
+        bnd_constraint: (Optional) Upper bound for the boundedness constraint.
+            If None, an unconstrained optimization is performed.
+
+    Returns:
+        A tuple containing:
+        - The optimized parameters in the same structure as the input `params`.
+        - A dictionary of optimization results, including:
+            - 'action': The final action value.
+            - 'boundedness': The final boundedness value.
+            - 'n_iterations': Number of iterations performed.
+            - 'n': The spin dimension.
+            - 'f': The number of particles.
+            - 'm': The cardinality of the support.
+    """
   solver = Optimistix_BFGS_Solver(max_iter, rtol, atol)
   params = _flatten_params(params)
 

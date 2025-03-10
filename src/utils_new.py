@@ -586,11 +586,11 @@ def _action_with_barrier_bnd_constraint(params:Params, bnd_constraint, k):
     Returns:
         float: The computed action value with the barrier function applied.
     """
-  action = action(params)
+  unbounded_action = action(params)
   bnd = boundedness(params)
   barrier = -(1/k)*jnp.log(-(bnd-bnd_constraint))
 
-  return action + barrier
+  return unbounded_action + barrier
 
 def _action_with_barrier_flat_params(params: jnp.ndarray, n: int, f: int, m: int, bnd_constraint, k) -> float:
   """Computes the causal action function with a barrier function for boundedness constraints with flat input parameters
@@ -838,7 +838,7 @@ def optimize_optimistix(params: Params,
    
   else:
      # satisfy feasibility
-    solver.satisfy_feasibility(params, n, f, m, bnd_constraint)
+    solution = solver.satisfy_feasibility(params, n, f, m, bnd_constraint)
     params = solution.value
     # minimise constrained action
     solution = solver.minimise_constrained_action(params,n,f,m,bnd_constraint,k)
